@@ -1,0 +1,22 @@
+# 生成的产物（清洗器写在这些位置，别提交）
+_tag备份/
+*.npz
+*.zip
+
+# 训练输出
+output/
+logs/
+*.safetensors
+*.ckpt
+*.pt
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*.log
+
+# Python（如果有人拿它当库用）
+__pycache__/
+*.pyc

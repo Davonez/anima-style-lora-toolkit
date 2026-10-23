@@ -1,0 +1,10 @@
+# ===== 自定义：额外删除的 tag（一行一个，大小写无所谓，# 开头是注释）=====
+# 内置规则已经覆盖了噪声/冗余/冲突/画风泄漏；这里只放「你这个数据集特有的」垃圾 tag。
+#
+# 典型用法：待复核.txt 里 A 段列出的角色名、作品名，确认后贴到这里，一次删干净。
+# 例：
+# yuuki haru
+# surtr (arknights)
+# ai-generated
+#
+# 命令行临时加也可以：-DropTags "yuuki haru,surtr (arknights)"

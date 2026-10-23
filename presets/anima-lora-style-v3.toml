@@ -1,0 +1,110 @@
+# ============================================================================
+# Anima 画风 LoRA —— v3 预设
+# ----------------------------------------------------------------------------
+# 安装：双击仓库根的 安装预设.bat，或手动把本文件复制到
+#       <Next-Trainer>\config\presets\
+# 使用：Next-Trainer → 模型=Anima DiT / 引擎=Kohya-ss / 目标=LoRA
+#       → 工具栏「训练预设」→ 选它
+#
+# 三处关键设置（其余是常规参数）：
+#   1) alpha 64 / dim 32（缩放 2.0）
+#      缩放 0.5 时学到的增量被砍半，出图只能靠把权重拉到 0.8~1.0 补偿，
+#      权重一高构图和动作就开始崩。改成 2.0 后出图权重 0.4~0.6 就有效果。
+#      （代码依据：sd-scripts networks/lora_anima.py  `self.scale = alpha / lora_dim`）
+#   2) 10 轮
+#      步数 ≈ 图数 × 轮数，目标 4000~7000 步。632 张 × 10 = 6320 步。
+#      换数据集按这个改：300 张 → 15 轮，800 张 → 8 轮。
+#   3) prefer_json_caption = false
+#      只有 .txt 标注时关掉，免得目录里意外出现 json 被优先读取。
+#
+# ⚠ 应用预设后必须自己填两个框（预设故意不写，避免覆盖你上一轮的产物）：
+#     训练数据集路径 train_data_dir
+#     模型保存名称  output_name   ← 不改会和上一轮同名，覆盖旧的 *_style-*.safetensors
+#
+# ⚠ 改过标注后，先把目录里的 *_anima_te.npz 删掉/挪走再训练：
+#      文本编码器缓存不比对 caption，不清缓存 = 清洗不生效。
+#      （一键清洗.bat 会问你要不要挪走）
+# ============================================================================
+
+[metadata]
+name = "Anima 画风 LoRA v3（rank32/alpha64 · 内容-only 标注）"
+version = "3.0"
+author = "local"
+train_type = "sd3-lora"
+description = "画风 LoRA 专用。dim32/alpha64（缩放 2.0，出图权重 0.4~0.6 即可）、10 轮（632 张≈6300 步，换数据集按 4000~7000 步反推）、Automagic 5e-5、cosine_with_restarts、分桶 256~1280 不放大、缓存 latent+文本编码器、keep_tokens=1 钉住 @触发词、prefer_json_caption=false。应用后只需填「训练数据集路径」和「模型保存名称」，后者务必改名。改过标注要先删 *_anima_te.npz，否则训练器仍用旧 caption 的 embedding。"
+
+[data]
+# ---- 训练用模型：按你的实际路径改，或用页面上的文件选择器 ----
+model_train_type = "anima-lora"
+lora_type = "lora"
+network_module = "networks.lora_anima"
+pretrained_model_name_or_path = "./sd-models/anima/anima-base-v1.0.safetensors"
+vae = "./sd-models/anima/qwen_image_vae.safetensors"
+qwen3 = "./sd-models/anima/qwen_3_06b_base.safetensors"
+qwen3_max_token_length = 512
+t5_max_token_length = 512
+
+# ---- Anima 采样参数（照官方推荐，别动）----
+timestep_sampling = "shift"
+sigmoid_scale = 1.0
+discrete_flow_shift = 3.0
+weighting_scheme = "uniform"
+attn_mode = "torch"
+split_attn = false
+vae_disable_cache = false
+
+# ---- 数据集设置 ----
+resolution = "1024,1024"
+enable_bucket = true
+min_bucket_reso = 256
+max_bucket_reso = 1280
+bucket_reso_steps = 64
+bucket_no_upscale = true
+
+# ---- 训练量（632 张 × 10 轮 = 6320 步，8GB 卡约 6~8 小时）----
+max_train_epochs = 10
+train_batch_size = 1
+gradient_checkpointing = true
+gradient_accumulation_steps = 1
+
+# ---- LoRA 结构：只训 DiT，不动 Qwen3 文本侧 ----
+network_train_unet_only = true
+network_train_text_encoder_only = false
+network_dim = 32
+network_alpha = 64
+network_dropout = 0
+pissa_init = false
+dim_from_weights = false
+
+# ---- 优化器 / 学习率：Automagic 让学习率不必手调 ----
+optimizer_type = "Automagic"
+learning_rate = "5e-5"
+unet_lr = "5e-5"
+text_encoder_lr = "0"
+lr_scheduler = "cosine_with_restarts"
+lr_scheduler_num_cycles = 1
+lr_warmup_steps = 0
+
+# ---- 保存：每 2 轮一档，取 60%~100% 之间的档 ----
+save_model_as = "safetensors"
+save_precision = "fp16"
+save_every_n_epochs = 2
+save_state = false
+
+# ---- caption：keep_tokens=1 把 @触发词钉在第一位 ----
+caption_extension = ".txt"
+shuffle_caption = false
+keep_tokens = 1
+prefer_json_caption = false
+
+# ---- 精度 / 缓存（8GB 显存的关键）----
+mixed_precision = "bf16"
+cache_latents = true
+cache_latents_to_disk = true
+cache_text_encoder_outputs = true
+cache_text_encoder_outputs_to_disk = true
+persistent_data_loader_workers = false
+max_data_loader_n_workers = 0
+
+# ---- 训练中预览图（关掉；评测用 一键对照.bat 更准）----
+enable_preview = false

@@ -1,0 +1,7 @@
+# 让 Windows 上编辑过的 .ps1 / .bat 保持 CRLF，md/toml 用 LF
+* text=auto
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.md text eol=lf
+*.toml text eol=lf
+*.txt text eol=crlf
